@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">File Transferatu</string>
+
+    <string name="server_offline">Server offline.</string>
+    <string name="server_address">Server address:</string>
+
+    <string name="address_copied">Server address copied to clipboard.</string>
+    <string name="dialog_no_wifi_title">Enable Wi-Fi or HotSpot</string>
+    <string name="dialog_no_wifi_message">Please enable Wi-Fi or HotSpot in your device to share your files.</string>
+
+    <string name="dialog_storage_title">Storage permission</string>
+    <string name="dialog_storage_message">App needs Storage permission granted to create and save User login details in
+        your device and won`t work without it.</string>
+    <string name="dialog_storage_denied_title">No Storage permission</string>
+    <string name="dialog_storage_denied_message">App needs Storage permission granted in order to work properly and will now close.</string>
+</resources>

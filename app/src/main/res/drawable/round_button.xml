@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/colorButtonIconBack" />
+            <padding android:top="@dimen/circle_button_padding"/>
+            <padding android:bottom="@dimen/circle_button_padding"/>
+            <padding android:left="@dimen/circle_button_padding"/>
+            <padding android:right="@dimen/circle_button_padding"/>
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- WHEN IS CHECKED -->
+    <item android:drawable="@drawable/ic_baseline_power_settings_new_green" android:state_checked="true" />
+
+    <!-- WHEN IS NOT CHECKED -->
+    <item android:drawable="@drawable/ic_baseline_power_settings_new_red" android:state_checked="false" />
+</selector>
