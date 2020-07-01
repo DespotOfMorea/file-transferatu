@@ -1,28 +1,33 @@
 package org.vnuk.filetransferatu;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
@@ -67,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvTitle;
     private TextView tvAddress;
 
+    private String userName;
+    private String password;
+
     private FtpServerFactory serverFactory = new FtpServerFactory();
     private ListenerFactory listenerFactory = new ListenerFactory();
     private PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
@@ -79,13 +87,14 @@ public class MainActivity extends AppCompatActivity {
 
         checkPermissions();
         mServer = serverFactory.createServer();
+        userName = USER;
+        password = PASS;
 
         tbStart = findViewById(R.id.tb_server);
         tbStart.setOnCheckedChangeListener(createStartButtonListener());
         tvTitle = findViewById(R.id.tv_server_title);
         tvAddress = findViewById(R.id.tv_server_address);
-        ImageView ivCopy = findViewById(R.id.iv_copy);
-        ivCopy.setOnClickListener(createCopyButtonListener());
+        setupButtons();
     }
 
     @Override
@@ -98,6 +107,53 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    private void setupButtons() {
+        ImageView ivWiFi = findViewById(R.id.iv_wifi);
+        ImageView ivLogin = findViewById(R.id.iv_login);
+        ImageView ivSettings = findViewById(R.id.iv_settings);
+        ImageView ivCopy = findViewById(R.id.iv_copy);
+        ImageView ivInternal = findViewById(R.id.iv_internal);
+        ImageView ivSDCard = findViewById(R.id.iv_sd_card);
+
+        ivLogin.setOnClickListener(createLoginButtonListener());
+        ivCopy.setOnClickListener(createCopyButtonListener());
+        ivWiFi.setOnClickListener(createWiFiButtonListener());
+        ivSettings.setOnClickListener(createSettingsButtonListener());
+        ivInternal.setOnClickListener(createInternalButtonListener());
+        ivSDCard.setOnClickListener(createSDCardButtonListener());
+    }
+
+    private View.OnClickListener createWiFiButtonListener() {
+        return v -> {
+            Log.v(TAG, "Opening device Wi-Fi settings.");
+            Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+            startActivity(intent);
+        };
+    }
+
+    private View.OnClickListener createLoginButtonListener() {
+        return v -> {
+            Log.v(TAG, "Change Login dialog started.");
+
+            Dialog loginDialog = new Dialog(this);
+            loginDialog.setContentView(R.layout.login_layout);
+
+            Button btnCancel = loginDialog.findViewById(R.id.btn_login_cancel);
+            btnCancel.setOnClickListener(v1 -> loginDialog.dismiss());
+            Button btnSave = loginDialog.findViewById(R.id.btn_login_save);
+            btnSave.setOnClickListener(v1 -> saveNewLogin(loginDialog));
+
+            loginDialog.show();
+        };
+    }
+
+    private View.OnClickListener createSettingsButtonListener() {
+        return v -> {
+            //Toast.makeText(getBaseContext(), getText(R.string.address_copied), Toast.LENGTH_LONG).show();
+            //Log.v(TAG, "Server address copied to clipboard.");
+        };
+    }
+
     private View.OnClickListener createCopyButtonListener() {
         return v -> {
             String msg = String.valueOf(tvAddress.getText());
@@ -107,6 +163,20 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(getBaseContext(), getText(R.string.address_copied), Toast.LENGTH_LONG).show();
             Log.v(TAG, "Server address copied to clipboard.");
+        };
+    }
+
+    private View.OnClickListener createInternalButtonListener() {
+        return v -> {
+            //Toast.makeText(getBaseContext(), getText(R.string.address_copied), Toast.LENGTH_LONG).show();
+            //Log.v(TAG, "Server address copied to clipboard.");
+        };
+    }
+
+    private View.OnClickListener createSDCardButtonListener() {
+        return v -> {
+            //Toast.makeText(getBaseContext(), getText(R.string.address_copied), Toast.LENGTH_LONG).show();
+            //Log.v(TAG, "Server address copied to clipboard.");
         };
     }
 
@@ -147,8 +217,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startingServer() {
-        String userName = USER;
-        String password = PASS;
+        String userValue = userName;
+        String passValue = password;
+
+        String userName = (userValue.equals("")) ? USER : userValue;
+        String password = (passValue.equals("")) ? PASS : passValue;
         String path = "";
         setupServer(userName, password, path);
         startSever();
@@ -170,23 +243,8 @@ public class MainActivity extends AppCompatActivity {
         userManagerFactory.setFile(files);
         userManagerFactory.setPasswordEncryptor(new SaltedPasswordEncryptor());
         UserManager userManager = userManagerFactory.createUserManager();
-        BaseUser baseUser = new BaseUser();
-        baseUser.setName(userName);
-        baseUser.setPassword(password);
-        baseUser.setHomeDirectory(Environment.getExternalStorageDirectory().getPath() + File.separator + path);
+        addNewUser(userName, password, path, userManager);
 
-        List<Authority> authorities = new ArrayList<>();
-        Authority auth = new WritePermission();
-        authorities.add(auth);
-        baseUser.setAuthorities(authorities);
-
-        try {
-            userManager.save(baseUser);
-        } catch (FtpException e) {
-            Log.e(TAG, "Saving User error: " + e.getMessage());
-        }
-
-        serverFactory.setUserManager(userManager);
         Map<String, Ftplet> m = new HashMap<>();
         m.put("miaFtplet", new Ftplet() {
             @Override
@@ -222,12 +280,42 @@ public class MainActivity extends AppCompatActivity {
         serverFactory.setFtplets(m);
     }
 
+    private void saveNewLogin(Dialog dialog) {
+        EditText etUser = dialog.findViewById(R.id.tiet_username);
+        EditText etPass = dialog.findViewById(R.id.tiet_password);
+
+        userName = String.valueOf(etUser.getText());
+        password = String.valueOf(etPass.getText());
+        dialog.dismiss();
+
+        UserManager userManager = serverFactory.getUserManager();
+        addNewUser(userName, password, "", userManager);
+    }
+
+    private void addNewUser(String userName, String password, String path, UserManager userManager) {
+        BaseUser newUser = new BaseUser();
+        newUser.setName(userName);
+        newUser.setPassword(password);
+        newUser.setHomeDirectory(Environment.getExternalStorageDirectory().getPath() + File.separator + path);
+
+        List<Authority> authorities = new ArrayList<>();
+        Authority auth = new WritePermission();
+        authorities.add(auth);
+        newUser.setAuthorities(authorities);
+
+        try {
+            userManager.save(newUser);
+        } catch (FtpException e) {
+            Log.e(TAG, "Saving User error: " + e.getMessage());
+        }
+
+        serverFactory.setUserManager(userManager);
+    }
+
     private void startSever() {
         try {
             mServer.start();
-            tvTitle.setText(getText(R.string.server_address));
-            tvAddress.setText(String.format("ftp://%s:%s", wiFiIpAddress(this), PORT));
-            System.out.println("ADDRESS: " + String.format("ftp://%s:%s", wiFiIpAddress(this), PORT));
+            setUI(true);
         } catch (FtpException e) {
             e.printStackTrace();
         }
@@ -235,12 +323,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void resumingServer() {
         mServer.resume();
-        tvTitle.setText(getText(R.string.server_address));
+        setUI(true);
     }
 
     private void suspendingServer() {
         mServer.suspend();
-        tvTitle.setText(getText(R.string.server_offline));
+        setUI(false);
+    }
+
+    private void setUI(boolean isServerON) {
+        if (isServerON) {
+            tvTitle.setText(getText(R.string.server_online));
+            tvTitle.setTextColor(getResources().getColor(R.color.colorServerON, null));
+            tvAddress.setText(String.format("ftp://%s:%s", wiFiIpAddress(this), PORT));
+            System.out.println("ADDRESS: " + String.format("ftp://%s:%s", wiFiIpAddress(this), PORT));
+        } else {
+            tvTitle.setText(getText(R.string.server_offline));
+            tvTitle.setTextColor(getResources().getColor(R.color.colorServerOFF, null));
+            tvAddress.setText("");
+        }
     }
 
     private boolean checkWiFiState(Context context) {

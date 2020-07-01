@@ -12,13 +12,75 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/element_margin"
         android:text="@string/server_offline"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        android:textColor="@color/colorServerOFF"
+        android:textSize="@dimen/text_title_size"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/ll_login"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
-        android:id="@+id/linearLayout"
+        android:id="@+id/ll_login"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/tv_server_default"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_wifi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/round_button"
+            android:clickable="false"
+            app:srcCompat="@drawable/ic_baseline_wifi" />
+
+        <ImageView
+            android:id="@+id/iv_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/element_margin"
+            android:layout_marginEnd="@dimen/element_margin"
+            android:background="@drawable/round_button"
+            app:srcCompat="@drawable/ic_baseline_person" />
+
+        <ImageView
+            android:id="@+id/iv_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.25"
+            android:background="@drawable/round_button"
+            app:srcCompat="@drawable/ic_baseline_settings" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_server_default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/element_margin"
+        android:text="@string/default_params"
+        app:layout_constraintBottom_toTopOf="@+id/tv_server_address_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_server_address_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/element_margin"
+        android:text="@string/server_address"
+        app:layout_constraintBottom_toTopOf="@+id/ll_server_address"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/ll_server_address"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -55,16 +117,49 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/element_margin"
         android:drawableTop="@drawable/server_button_icon"
-        android:gravity="center"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:textOff=""
-        android:textOn=""
-        android:textSize="0sp"
+        android:textOff="@string/server_off"
+        android:textOn="@string/server_on"
         android:theme="@style/AppTheme.ToggleButtonGreen"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.478"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/ll_server_address" />
+
+    <LinearLayout
+        android:id="@+id/ll_storage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/element_margin"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tb_server">
+
+        <TextView
+            android:id="@+id/tv_storage_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/storage_title" />
+
+        <ImageView
+            android:id="@+id/iv_internal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/element_margin"
+            android:layout_marginEnd="@dimen/element_margin"
+            android:alpha="0.25"
+            android:background="@drawable/round_button"
+            app:srcCompat="@drawable/ic_baseline_smartphone" />
+
+        <ImageView
+            android:id="@+id/iv_sd_card"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/element_margin"
+            android:alpha="0.25"
+            android:background="@drawable/round_button"
+            app:srcCompat="@drawable/ic_baseline_sd_card" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

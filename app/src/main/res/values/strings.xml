@@ -2,7 +2,16 @@
     <string name="app_name">File Transferatu</string>
 
     <string name="server_offline">Server offline.</string>
+    <string name="server_online">Server online.</string>
+    <string name="username">Username:</string>
+    <string name="password">Password:</string>
+    <string name="default_params">Default login: admin (username) admin (password).</string>
     <string name="server_address">Server address:</string>
+
+    <string name="server_off">Server OFF</string>
+    <string name="server_on">Server ON</string>
+
+    <string name="storage_title">Select storage type:</string>
 
     <string name="address_copied">Server address copied to clipboard.</string>
     <string name="dialog_no_wifi_title">Enable Wi-Fi or HotSpot</string>
