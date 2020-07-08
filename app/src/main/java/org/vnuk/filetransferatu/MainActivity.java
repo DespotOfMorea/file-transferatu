@@ -7,6 +7,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -62,6 +63,10 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private final int PERMISSIONS_REQUEST = 7652;
+    private final int REQUEST_CODE_SD_PATH = 4517;
+    private final int REQUEST_CODE_FOLDER_PATH = 4518;
+    private static final String ROOT_PATH = "/storage";
+    private static final String INTERNAL_COMPARE = "primary";
 
     private final int PORT = 2121;
     private final String USER = "admin";
@@ -71,9 +76,13 @@ public class MainActivity extends AppCompatActivity {
     private ToggleButton tbStart;
     private TextView tvTitle;
     private TextView tvAddress;
+    private ImageView ivInternal;
+    private ImageView ivSDCard;
+    private ImageView ivDir;
 
     private String userName;
     private String password;
+    private String path;
 
     private FtpServerFactory serverFactory = new FtpServerFactory();
     private ListenerFactory listenerFactory = new ListenerFactory();
@@ -89,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         mServer = serverFactory.createServer();
         userName = USER;
         password = PASS;
+        path = Environment.getExternalStorageDirectory().getPath();
 
         tbStart = findViewById(R.id.tb_server);
         tbStart.setOnCheckedChangeListener(createStartButtonListener());
@@ -112,15 +122,20 @@ public class MainActivity extends AppCompatActivity {
         ImageView ivLogin = findViewById(R.id.iv_login);
         ImageView ivSettings = findViewById(R.id.iv_settings);
         ImageView ivCopy = findViewById(R.id.iv_copy);
-        ImageView ivInternal = findViewById(R.id.iv_internal);
-        ImageView ivSDCard = findViewById(R.id.iv_sd_card);
+        ImageView ivShare = findViewById(R.id.iv_share);
+        ivInternal = findViewById(R.id.iv_internal);
+        ivInternal.setEnabled(false);
+        ivSDCard = findViewById(R.id.iv_sd_card);
+        ivDir = findViewById(R.id.iv_dir);
 
-        ivLogin.setOnClickListener(createLoginButtonListener());
-        ivCopy.setOnClickListener(createCopyButtonListener());
         ivWiFi.setOnClickListener(createWiFiButtonListener());
+        ivLogin.setOnClickListener(createLoginButtonListener());
         ivSettings.setOnClickListener(createSettingsButtonListener());
+        ivCopy.setOnClickListener(createCopyButtonListener());
+        ivShare.setOnClickListener(createShareButtonListener());
         ivInternal.setOnClickListener(createInternalButtonListener());
         ivSDCard.setOnClickListener(createSDCardButtonListener());
+        ivDir.setOnClickListener(createDirButtonListener());
     }
 
     private View.OnClickListener createWiFiButtonListener() {
@@ -166,17 +181,63 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    private View.OnClickListener createShareButtonListener() {
+        return v -> {
+            Log.v(TAG, "Server address sharing started.");
+
+            String msg = String.valueOf(tvAddress.getText());
+
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, msg);
+            sendIntent.setType("text/plain");
+            startActivity(sendIntent);
+        };
+    }
+
     private View.OnClickListener createInternalButtonListener() {
         return v -> {
-            //Toast.makeText(getBaseContext(), getText(R.string.address_copied), Toast.LENGTH_LONG).show();
-            //Log.v(TAG, "Server address copied to clipboard.");
+            Log.v(TAG, "Set path for internal storage.");
+            ivInternal.setAlpha(0.25f);
+            ivSDCard.setAlpha(1f);
+            ivDir.setAlpha(1f);
+            ivInternal.setEnabled(false);
+            ivSDCard.setEnabled(true);
+            ivDir.setEnabled(true);
+            path = Environment.getExternalStorageDirectory().getPath();
+            configChange();
         };
     }
 
     private View.OnClickListener createSDCardButtonListener() {
         return v -> {
-            //Toast.makeText(getBaseContext(), getText(R.string.address_copied), Toast.LENGTH_LONG).show();
-            //Log.v(TAG, "Server address copied to clipboard.");
+            Log.v(TAG, "Set path for SD card.");
+            ivInternal.setAlpha(1f);
+            ivSDCard.setAlpha(0.25f);
+            ivDir.setAlpha(1f);
+            ivInternal.setEnabled(true);
+            ivSDCard.setEnabled(false);
+            ivDir.setEnabled(true);
+
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            i.addCategory(Intent.CATEGORY_DEFAULT);
+            startActivityForResult(Intent.createChooser(i, "Choose directory"), REQUEST_CODE_SD_PATH);
+        };
+    }
+
+    private View.OnClickListener createDirButtonListener() {
+        return v -> {
+            Log.v(TAG, "Set path for specific directory.");
+            ivInternal.setAlpha(1f);
+            ivSDCard.setAlpha(1f);
+            ivDir.setAlpha(0.25f);
+            ivInternal.setEnabled(true);
+            ivSDCard.setEnabled(true);
+            ivDir.setEnabled(false);
+
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            i.addCategory(Intent.CATEGORY_DEFAULT);
+            startActivityForResult(Intent.createChooser(i, "Choose directory"), REQUEST_CODE_FOLDER_PATH);
         };
     }
 
@@ -222,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
 
         String userName = (userValue.equals("")) ? USER : userValue;
         String password = (passValue.equals("")) ? PASS : passValue;
-        String path = "";
+        //String path = "";
         setupServer(userName, password, path);
         startSever();
     }
@@ -288,15 +349,14 @@ public class MainActivity extends AppCompatActivity {
         password = String.valueOf(etPass.getText());
         dialog.dismiss();
 
-        UserManager userManager = serverFactory.getUserManager();
-        addNewUser(userName, password, "", userManager);
+        configChange();
     }
 
     private void addNewUser(String userName, String password, String path, UserManager userManager) {
         BaseUser newUser = new BaseUser();
         newUser.setName(userName);
         newUser.setPassword(password);
-        newUser.setHomeDirectory(Environment.getExternalStorageDirectory().getPath() + File.separator + path);
+        newUser.setHomeDirectory(path);
 
         List<Authority> authorities = new ArrayList<>();
         Authority auth = new WritePermission();
@@ -342,6 +402,12 @@ public class MainActivity extends AppCompatActivity {
             tvTitle.setTextColor(getResources().getColor(R.color.colorServerOFF, null));
             tvAddress.setText("");
         }
+    }
+
+    private void configChange() {
+        UserManager userManager = serverFactory.getUserManager();
+        addNewUser(userName, password, path, userManager);
+        tbStart.setChecked(false);
     }
 
     private boolean checkWiFiState(Context context) {
@@ -438,6 +504,32 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_SD_PATH) {
+            if (data != null) {
+                Uri uri = data.getData();
+                String dirName = uri.getLastPathSegment().split(":")[0];
+                path = ROOT_PATH + File.separator + dirName;
+                configChange();
+            }
+        } else if (requestCode == REQUEST_CODE_FOLDER_PATH) {
+            if (data != null) {
+                Uri uri = data.getData();
+                String root = uri.getLastPathSegment().split(":")[0];
+                String dirName = uri.getLastPathSegment().split(":")[1];
+                if (root.equals(INTERNAL_COMPARE)) {
+                    path = Environment.getExternalStorageDirectory().getPath() + File.separator + dirName;
+                } else {
+                    path = ROOT_PATH + File.separator + root + File.separator + dirName;
+                }
+                configChange();
+            }
+        }
     }
 
     @Override
