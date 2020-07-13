@@ -27,7 +27,7 @@
         android:layout_marginBottom="@dimen/element_margin"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/tv_server_address_title"
+        app:layout_constraintBottom_toTopOf="@+id/tv_server_default"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent">
@@ -60,13 +60,14 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/tv_server_address_title"
+        android:id="@+id/tv_server_default"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/element_margin"
-        android:text="@string/server_address"
+        android:text="@string/default_params"
         app:layout_constraintBottom_toTopOf="@+id/ll_server_address"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
@@ -81,8 +82,15 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/tv_server_address_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/element_margin"
+            android:text="@string/server_address" />
+
+        <TextView
             android:id="@+id/tv_server_address"
-            android:layout_width="0dp"
+            android:layout_width="185dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/element_margin"
             android:layout_marginEnd="@dimen/element_margin"
@@ -122,17 +130,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ll_server_address" />
 
-    <TextView
-        android:id="@+id/tv_server_default"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/element_margin"
-        android:text="@string/default_params"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tb_server" />
-
     <LinearLayout
         android:id="@+id/ll_storage"
         android:layout_width="0dp"
@@ -143,7 +140,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.50"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_server_default">
+        app:layout_constraintTop_toBottomOf="@+id/tb_server">
 
         <TextView
             android:id="@+id/tv_storage_title"
