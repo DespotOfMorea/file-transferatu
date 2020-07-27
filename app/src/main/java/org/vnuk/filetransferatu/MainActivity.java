@@ -285,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
         String password = (passValue.equals("")) ? PASS : passValue;
         //String path = "";
         setupServer(userName, password, path);
-        startSever();
+        startServer();
     }
 
     private void setupServer(String userName, String password, String path) {
@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
         serverFactory.setUserManager(userManager);
     }
 
-    private void startSever() {
+    private void startServer() {
         try {
             mServer.start();
             setUI(true);
@@ -520,8 +520,16 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == REQUEST_CODE_FOLDER_PATH) {
             if (data != null) {
                 Uri uri = data.getData();
-                String root = uri.getLastPathSegment().split(":")[0];
-                String dirName = uri.getLastPathSegment().split(":")[1];
+                String[] paths = uri.getLastPathSegment().split(":");
+                String root;
+                String dirName;
+                if (paths.length>1) {
+                    root = paths[0];
+                    dirName = paths[1];
+                } else {
+                    return;
+                }
+
                 if (root.equals(INTERNAL_COMPARE)) {
                     path = Environment.getExternalStorageDirectory().getPath() + File.separator + dirName;
                 } else {
