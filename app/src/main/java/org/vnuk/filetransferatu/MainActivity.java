@@ -1,5 +1,7 @@
 package org.vnuk.filetransferatu;
 
+import static android.os.Environment.isExternalStorageManager;
+
 import android.Manifest;
 import android.app.Dialog;
 import android.content.ClipData;
@@ -292,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
         listenerFactory.setPort(PORT);
         serverFactory.addListener("default", listenerFactory.createListener());
 
-        File files = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + FILE_NAME);
+        File files = new File(getFilesDir() + File.separator + FILE_NAME);
         if (!files.exists()) {
             try {
                 files.createNewFile();
@@ -490,20 +492,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(R.string.dialog_storage_message).setTitle(R.string.dialog_storage_title);
-                builder.setPositiveButton("OK", (dialog, id) -> {
-                    dialog.dismiss();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!isExternalStorageManager()) {
+                Uri uri = Uri.parse("package:org.vnuk.filetransferatu");
+                startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri));
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setMessage(R.string.dialog_storage_message).setTitle(R.string.dialog_storage_title);
+                    builder.setPositiveButton("OK", (dialog, id) -> {
+                        dialog.dismiss();
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST);
+                    });
+                    builder.show();
+                } else {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST);
-                });
-                builder.show();
-            } else {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST);
+                }
             }
         }
-
     }
 
     @Override
@@ -552,6 +560,8 @@ public class MainActivity extends AppCompatActivity {
                 });
                 builder.show();
             }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 }
